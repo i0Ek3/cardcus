@@ -7,6 +7,12 @@ def convert_to_card(input_image_path):
     base_name = os.path.splitext(os.path.basename(input_image_path))[0]
     output_name = f"card_{base_name}.jpg"
 
+    # Constants
+    card_width = 88.5
+    card_height = 57.5
+    inch_base = 25.4
+    required_dpi = 350
+
     # Open image
     try:
         img = Image.open(input_image_path)
@@ -20,21 +26,21 @@ def convert_to_card(input_image_path):
     except:
         # If no DPI info, calculate from pixel dimensions
         # Standard card size in mm converted to inches
-        width_in = 88.5 / 25.4  # Convert mm to inches
-        height_in = 57.5 / 25.4
+        width_in = card_width / inch_base  # Convert mm to inches
+        height_in = card_height / inch_base
 
         # Calculate effective DPI
         dpi_x = img.width / width_in
         dpi_y = img.height / height_in
 
     # Check if resolution is too low
-    if min(dpi_x, dpi_y) < 350:
+    if min(dpi_x, dpi_y) < required_dpi:
         print("Image resolution too low. Please provide an image with at least 350 DPI")
         return False
 
     # Calculate target size in pixels for 88.5mm x 57.5mm at image's DPI
-    target_width = int(88.5 / 25.4 * dpi_x)  # Convert mm to inches then to pixels
-    target_height = int(57.5 / 25.4 * dpi_y)
+    target_width = int(card_width / inch_base * dpi_x)  # Convert mm to inches then to pixels
+    target_height = int(card_height / inch_base * dpi_y)
 
     # Resize image maintaining aspect ratio
     img_ratio = img.width / img.height
