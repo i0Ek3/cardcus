@@ -5,7 +5,7 @@ import re
 def convert_to_card(input_image_path):
     # Get base filename without extension
     base_name = os.path.splitext(os.path.basename(input_image_path))[0]
-    output_name = f"card_{base_name}.jpg"
+    output_name = f"./images/output_{base_name}.jpg"
 
     # Constants
     card_width = 88.5

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cardcus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .upload-container {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .upload-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .upload-button:hover {
+            background-color: #45a049;
+        }
+
+        .preview-container {
+            margin: 20px auto;
+            max-width: 300px;
+            display: none;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* 横向卡片样式 */
+        .card-landscape {
+            width: 380px;
+            height: 240px;
+            perspective: 1000px;
+            margin: 20px;
+        }
+
+        /* 竖向卡片样式 */
+        .card-portrait {
+            width: 240px;
+            height: 380px;
+            perspective: 1000px;
+            margin: 20px;
+        }
+
+        .card-portrait .card-back {
+            transform: rotateY(180deg) rotate(90deg);  /* 添加 rotate(90deg) */
+            width: 380px;  /* 使用横向卡片的宽度 */
+            height: 240px; /* 使用横向卡片的高度 */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-left: -190px; /* 负的宽度的一半 */
+            margin-top: -120px;  /* 负的高度的一半 */
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-landscape:hover .card-inner,
+        .card-portrait:hover .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .card-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* TODO：横竖向卡片使用不同的芯片样式 */
+        .chip {
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            margin-top: 50px;
+        }
+
+        .card-number {
+            font-size: 1.4em;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .card-holder, .expiry-date {
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+
+        .card-back {
+            background: #f8f8f8;
+            transform: rotateY(180deg);
+            padding: 20px;
+        }
+
+        .magnetic-strip {
+            background: #333;
+            height: 40px;
+            margin: 20px 0;
+        }
+
+        .signature-strip {
+            background: white;
+            height: 40px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 10px;
+        }
+
+        .cvv {
+            font-family: monospace;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .error-message {
+            color: #ff4444;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="margin-bottom: 2rem; color: #333;">自定义银行卡卡面</h1>
+
+    <div class="upload-container">
+        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+        <button class="upload-button" onclick="document.getElementById('imageInput').click()">
+            请上传图片
+        </button>
+        <div class="preview-container">
+            <img id="previewImage" class="preview-image" alt="预览图片">
+        </div>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <div id="cardContainer"></div>
+
+    <script>
+        const cardData = {
+            bankName: "Universal Bank",
+            cardNumber: "4532 •••• •••• 1234",
+            cardHolder: "JOHN DOE",
+            expiryDate: "12/25",
+            cvv: "***"
+        };
+
+        function validateImage(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                
+                img.onload = function() {
+                    URL.revokeObjectURL(objectUrl);
+                    resolve({
+                        width: img.width,
+                        height: img.height,
+                        isPortrait: img.height > img.width
+                    });
+                };
+                
+                img.onerror = function() {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('图片加载失败'));
+                };
+                
+                img.src = objectUrl;
+            });
+        }
+
+        document.getElementById('imageInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            const errorMessage = document.getElementById('errorMessage');
+            //const previewContainer = document.querySelector('.preview-container');
+            
+            if (file) {
+                try {
+                    if (!file.type.startsWith('image/')) {
+                        throw new Error('请选择图片文件');
+                    }
+
+                    if (file.size > 5 * 1024 * 1024) {
+                        throw new Error('图片大小不能超过5MB');
+                    }
+
+                    const dimensions = await validateImage(file);
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageUrl = event.target.result;
+                        
+                        // 显示预览图片
+                        //const previewImage = document.getElementById('previewImage');
+                        //previewImage.src = imageUrl;
+                        //previewContainer.style.display = 'block';
+                        errorMessage.style.display = 'none';
+
+                        // 渲染卡片
+                        renderCard(imageUrl, dimensions.isPortrait);
+                    };
+                    reader.readAsDataURL(file);
+                } catch (error) {
+                    errorMessage.textContent = error.message;
+                    errorMessage.style.display = 'block';
+                    //previewContainer.style.display = 'none';
+                }
+            }
+        });
+
+        function createCard(imageUrl, isPortrait) {
+            const cardClass = isPortrait ? 'card-portrait' : 'card-landscape';
+            
+            return `
+                <div class="${cardClass}">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-background">
+                                <img src="${imageUrl}" alt="Card Background">
+                            </div>
+                            <div class="card-content">
+                                <div>
+                                    <div class="chip"></div>
+                                    <div class="card-number">${cardData.cardNumber}</div>
+                                </div>
+                                <div class="card-info">
+                                    <div class="card-holder">
+                                        <div style="font-size: 0.8em; opacity: 0.8;">Card Holder</div>
+                                        ${cardData.cardHolder}
+                                    </div>
+                                    <div class="expiry-date">
+                                        <div style="font-size: 0.8em; opacity: 0.8;">Expires</div>
+                                        ${cardData.expiryDate}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <div class="magnetic-strip"></div>
+                            <div class="signature-strip">
+                                <div class="cvv">${cardData.cvv}</div>
+                            </div>
+                            <div style="text-align: center; margin-top: 20px; color: #666;">
+                                This card is property of Universal Bank.<br>
+                                If found, please return to nearest branch.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCard(imageUrl, isPortrait) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = createCard(imageUrl, isPortrait);
+        }
+
+        // 初始化时显示默认卡片
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCard('https://picsum.photos/800/500?random=1', false);
+        });
+    </script>
+</body>
+</html>
