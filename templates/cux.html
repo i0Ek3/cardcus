@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Cut Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .preview-container {
+            width: 334px; /* 使用最大宽度 */
+            height: 334px; /* 使用最大高度 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .card-frame {
+            border: 2px solid #ccc;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* 竖版卡片尺寸 (55.7mm × 88.5mm) */
+        .card-frame.vertical {
+            width: 210px;  /* 55.7mm in pixels */
+            height: 334px; /* 88.5mm in pixels */
+        }
+
+        /* 横版卡片尺寸 (88.5mm × 55.7mm) */
+        .card-frame.horizontal {
+            width: 334px;  /* 88.5mm in pixels */
+            height: 210px; /* 55.7mm in pixels */
+        }
+
+        .image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            display: block;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .upload-btn {
+            background: #2196F3;
+        }
+
+        .upload-btn:hover {
+            background: #1976D2;
+        }
+
+        .finish-btn {
+            background: #4CAF50;
+        }
+
+        .finish-btn:hover {
+            background: #45a049;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .error-message {
+            color: #f44336;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #ffebee;
+            display: none;
+        }
+
+        .controls-group {
+            margin: 10px 0;
+        }
+
+        .slider-control {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .slider-control label {
+            margin-right: 10px;
+            min-width: 80px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        .orientation-selector {
+            margin: 20px 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .orientation-selector label {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        .orientation-selector input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Card Cut Tool</h1>
+
+        <div class="orientation-selector">
+            <label>
+                <input type="radio" name="orientation" value="vertical" checked> 竖版卡片 (55.7mm × 88.5mm)
+            </label>
+            <label>
+                <input type="radio" name="orientation" value="horizontal"> 横版卡片 (88.5mm × 55.7mm)
+            </label>
+        </div>
+        
+        <div class="preview-container">
+            <div class="card-frame vertical">
+                <div class="image-container">
+                    <img id="previewImage" src="https://picsum.photos/800/800" alt="预览图">
+                </div>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="controls">
+            <input type="file" id="fileInput" accept="image/*">
+            <button class="button upload-btn" onclick="document.getElementById('fileInput').click()">
+                Upload Picture
+            </button>
+            <button class="button finish-btn" id="finishButton">
+                Save
+            </button>
+        </div>
+
+        <div class="controls-group">
+            <div class="slider-control">
+                <label>Scale:</label>
+                <input type="range" id="scaleSlider" min="0.1" max="3" step="0.1" value="1">
+            </div>
+            <div class="slider-control">
+                <label>Rotate:</label>
+                <input type="range" id="rotateSlider" min="-180" max="180" step="1" value="0">
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <script>
+        let cropper = null;
+        const minImageWidth = 1000; // 最小图片宽度要求
+        const minImageHeight = 630; // 最小图片高度要求
+
+        // 页面加载完成后初始化裁剪器
+        window.addEventListener('load', function() {
+            initializeCropper();
+        });
+
+        // 监听卡片方向选择
+        document.querySelectorAll('input[name="orientation"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const cardFrame = document.querySelector('.card-frame');
+                cardFrame.className = 'card-frame ' + this.value;
+                
+                // 如果已经有图片在裁剪，需要重新初始化裁剪器
+                if (cropper) {
+                    const aspectRatio = this.value === 'vertical' ? 210/334 : 334/210;
+                    cropper.setAspectRatio(aspectRatio);
+                }
+            });
+        });
+
+        function initializeCropper() {
+            const previewImage = document.getElementById('previewImage');
+            const orientation = document.querySelector('input[name="orientation"]:checked').value;
+            const aspectRatio = orientation === 'vertical' ? 210/334 : 334/210;
+
+            cropper = new Cropper(previewImage, {
+                viewMode: 1,
+                dragMode: 'move',
+                aspectRatio: aspectRatio,
+                autoCropArea: 1,
+                restore: false,
+                guides: false,
+                center: false,
+                highlight: false,
+                cropBoxMovable: false,
+                cropBoxResizable: false,
+                toggleDragModeOnDblclick: false,
+            });
+
+            // 绑定滑块控制
+            bindSliderControls();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // 检查文件是否为图片
+                if (!file.type.startsWith('image/')) {
+                    showError('请上传图片文件');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // 检查图片尺寸
+                        if (img.width < minImageWidth || img.height < minImageHeight) {
+                            showError(`图片尺寸太小。请上传至少 ${minImageWidth}x${minImageHeight} 像素的图片`);
+                            return;
+                        }
+
+                        const previewImage = document.getElementById('previewImage');
+                        previewImage.src = event.target.result;
+
+                        // 销毁之前的 cropper 实例
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+
+                        initializeCropper();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function bindSliderControls() {
+            const scaleSlider = document.getElementById('scaleSlider');
+            const rotateSlider = document.getElementById('rotateSlider');
+
+            scaleSlider.addEventListener('input', function(e) {
+                if (cropper) {
+                    cropper.scale(parseFloat(e.target.value));
+                }
+            });
+
+            rotateSlider.addEventListener('input', function(e) {
+                if (cropper) {
+                    cropper.rotateTo(parseFloat(e.target.value));
+                }
+            });
+        }
+
+        document.getElementById('finishButton').addEventListener('click', function() {
+            if (!cropper) return;
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            // 获取当前选择的卡片方向
+            const orientation = document.querySelector('input[name="orientation"]:checked').value;
+            const width = orientation === 'vertical' ? 210 : 334;
+            const height = orientation === 'vertical' ? 334 : 210;
+
+            // 获取裁剪后的图片数据
+            cropper.getCroppedCanvas({
+                width: width,
+                height: height,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            }).toBlob(function(blob) {
+                // 创建下载链接
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `credit-card-image-${orientation}.jpg`;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                loadingOverlay.style.display = 'none';
+            }, 'image/jpeg', 0.95);
+        });
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

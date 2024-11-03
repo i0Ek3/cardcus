@@ -5,18 +5,24 @@ Customize your bank card face.
 
 ## Run
 
-Run command `python3 app.py` and then open `http://127.0.0.1:5000` to review card.
+Run command `python3 app.py` and then open `http://127.0.0.1:5000`, after input template name to your console, you can review your card or cut picture for card easily.
+
+
+## Review
 
 ![](https://github.com/i0Ek3/cardcus/blob/main/images/horizon.jpg)
 
 ![](https://github.com/i0Ek3/cardcus/blob/main/images/vertical.jpg)
 
 
+## Cut
+
+![](https://github.com/i0Ek3/cardcus/blob/main/images/cux.jpg)
 
 
 ## Format
 
-Run command `python3 cardcus.py` to crop the image and format it for the bank card surface.
+Run command `python3 cardcus.py` to crop the image and format it for the bank card face.
 
 ```Shell
 $ python3 cardcus.py
