@@ -9,9 +9,9 @@ Run command `python3 app.py` and then open `http://127.0.0.1:5000`, after input 
 
 ## Review
 
-| Horizon                                                      | Vertical                                                     | Card  Cut Tool                                               |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![](https://github.com/i0Ek3/cardcus/blob/main/images/horizon.jpg) | ![](https://github.com/i0Ek3/cardcus/blob/main/images/vertical.jpg) | ![](https://github.com/i0Ek3/cardcus/blob/main/images/cux.jpg) |
+| Home                                                         | Vertical                                                     | Horizon                                                      | Card  Cut Tool                                               |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![](https://github.com/i0Ek3/cardcus/blob/main/images/home.jpg) | ![](https://github.com/i0Ek3/cardcus/blob/main/images/vertical.jpg) | ![](https://github.com/i0Ek3/cardcus/blob/main/images/horizon.jpg) | ![](https://github.com/i0Ek3/cardcus/blob/main/images/cux.jpg) |
 
 
 ## Format
