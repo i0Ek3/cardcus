@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +37,7 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .upload-button:hover {
@@ -72,14 +73,19 @@
         }
 
         .card-portrait .card-back {
-            transform: rotateY(180deg) rotate(90deg);  /* 添加 rotate(90deg) */
-            width: 380px;  /* 使用横向卡片的宽度 */
-            height: 240px; /* 使用横向卡片的高度 */
+            transform: rotateY(180deg) rotate(90deg);
+            /* 添加 rotate(90deg) */
+            width: 380px;
+            /* 使用横向卡片的宽度 */
+            height: 240px;
+            /* 使用横向卡片的高度 */
             position: absolute;
             top: 50%;
             left: 50%;
-            margin-left: -190px; /* 负的宽度的一半 */
-            margin-top: -120px;  /* 负的高度的一半 */
+            margin-left: -190px;
+            /* 负的宽度的一半 */
+            margin-top: -120px;
+            /* 负的高度的一半 */
         }
 
         .card-inner {
@@ -97,14 +103,15 @@
             transform: rotateY(180deg);
         }
 
-        .card-front, .card-back {
+        .card-front,
+        .card-back {
             position: absolute;
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .card-front {
@@ -155,7 +162,7 @@
             font-size: 1.4em;
             letter-spacing: 2px;
             margin-bottom: 20px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         .card-info {
@@ -164,7 +171,8 @@
             align-items: flex-end;
         }
 
-        .card-holder, .expiry-date {
+        .card-holder,
+        .expiry-date {
             font-size: 0.9em;
             text-transform: uppercase;
         }
@@ -204,8 +212,15 @@
         }
     </style>
 </head>
+
 <body>
     <h1 style="margin-bottom: 2rem; color: #333;">Customize Your Bank Card Face</h1>
+
+    <div style="margin-bottom: 20px;">
+        <a href="/cut"
+            style="text-decoration: none; padding: 10px 20px; background: #6366F1; color: white; border-radius: 8px; font-weight: bold;">Go
+            to Card Cut Tool</a>
+    </div>
 
     <div class="upload-container">
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
@@ -233,8 +248,8 @@
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 const objectUrl = URL.createObjectURL(file);
-                
-                img.onload = function() {
+
+                img.onload = function () {
                     URL.revokeObjectURL(objectUrl);
                     resolve({
                         width: img.width,
@@ -242,21 +257,21 @@
                         isPortrait: img.height > img.width
                     });
                 };
-                
-                img.onerror = function() {
+
+                img.onerror = function () {
                     URL.revokeObjectURL(objectUrl);
                     reject(new Error('图片加载失败'));
                 };
-                
+
                 img.src = objectUrl;
             });
         }
 
-        document.getElementById('imageInput').addEventListener('change', async function(e) {
+        document.getElementById('imageInput').addEventListener('change', async function (e) {
             const file = e.target.files[0];
             const errorMessage = document.getElementById('errorMessage');
             //const previewContainer = document.querySelector('.preview-container');
-            
+
             if (file) {
                 try {
                     if (!file.type.startsWith('image/')) {
@@ -268,11 +283,11 @@
                     }
 
                     const dimensions = await validateImage(file);
-                    
+
                     const reader = new FileReader();
-                    reader.onload = function(event) {
+                    reader.onload = function (event) {
                         const imageUrl = event.target.result;
-                        
+
                         // 显示预览图片
                         //const previewImage = document.getElementById('previewImage');
                         //previewImage.src = imageUrl;
@@ -293,7 +308,7 @@
 
         function createCard(imageUrl, isPortrait) {
             const cardClass = isPortrait ? 'card-portrait' : 'card-landscape';
-            
+
             return `
                 <div class="${cardClass}">
                     <div class="card-inner">
@@ -344,4 +359,5 @@
         });
     </script>
 </body>
+
 </html>

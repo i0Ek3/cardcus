@@ -1,15 +1,14 @@
-from flask import Flask, render_template, request
-import os
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    template_name = input("Please input template name(cux or index): ") + '.html'
-    try:
-        return render_template(template_name)
-    except:
-        return f"Template {template_name} non-exist."
+    return render_template('index.html')
+
+@app.route('/cut')
+def cut_tool():
+    return render_template('cux.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
